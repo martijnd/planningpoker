@@ -1,0 +1,31 @@
+{
+  "name": "planningpoker",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev --parallel",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/martijnd/planningpoker.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/martijnd/planningpoker/issues"
+  },
+  "homepage": "https://github.com/martijnd/planningpoker#readme",
+  "devDependencies": {
+    "prettier": "^2.7.1",
+    "turbo": "^1.5.6"
+  },
+  "engines": {
+    "npm": ">=7.0.0",
+    "node": ">=14.0.0"
+  },
+  "packageManager": "pnpm@7.9.0"
+}
