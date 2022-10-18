@@ -16,7 +16,7 @@ server.register(fastifyIO, {
 server.ready().then(() => {
   // we need to wait for the server to be ready, else `server.io` is undefined
   server.io.on("connection", (socket) => {
-    server.io.emit("hello");
+    server.io.emit("hello", "test");
     console.log(socket.id);
   });
 });

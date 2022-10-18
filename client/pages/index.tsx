@@ -4,8 +4,8 @@ import { io } from "socket.io-client";
 
 const socket = io("http://localhost:3001");
 
-socket.on("hello", () => {
-  console.log("hello");
+socket.on("hello", (data) => {
+  console.log("data", data);
 });
 
 const Home: NextPage = () => {
