@@ -1,40 +1,24 @@
-import { Server } from "socket.io";
+import fastify from "fastify";
+import fastifyIO from "fastify-socket.io";
+import cors from "@fastify/cors";
 
-const io = new Server(3001);
+const server = fastify();
+server.register(cors, {
+  origin: "http://localhost:3000",
+});
+server.register(fastifyIO, {
+  cors: {
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+  },
+});
 
-let games: Record<string, any> = {};
-
-io.on("connection", (socket) => {
-  console.log(`A user with ID: ${socket.id} connected`);
-  socket.on("join", ({ code }) => {
-    if (games[code]) {
-      socket.emit("accepted", "O");
-      games = { ...games, [code]: { ...games[code], O: socket.id } };
-      console.log(`emitting player-accepted to ${games[code].X}`);
-      io.to(games[code].X).emit("player-accepted");
-    } else {
-      socket.emit("accepted", "X");
-      games = { ...games, [code]: { X: socket.id } };
-    }
-  });
-
-  // Disconnect
-  socket.on("disconnect", () => {
-    console.log(`A user with ID: ${socket.id} disconnected`);
-    const code = Object.entries(games).find(([key, value]) => {
-      return value.X === socket.id || value.O === socket.id;
-    })?.[0]!;
-
-    if (code && games[code]) {
-      io.to(games[code].X).emit("disconnected");
-      io.to(games[code].O).emit("disconnected");
-    }
-    delete games[code];
-  });
-
-  // Place mark
-  socket.on("place-mark", ({ code, boardIndex, cellIndex, player }) => {
-    console.log("place-mark", { code, boardIndex, cellIndex, player });
-    io.emit("place-mark", { code, boardIndex, cellIndex, player });
+server.ready().then(() => {
+  // we need to wait for the server to be ready, else `server.io` is undefined
+  server.io.on("connection", (socket) => {
+    server.io.emit("hello");
+    console.log(socket.id);
   });
 });
+
+server.listen({ port: 3001 });
