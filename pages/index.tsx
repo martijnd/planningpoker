@@ -3,31 +3,21 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { Actions } from '@types';
+import { post } from 'util/post';
 
 const Home: NextPage = () => {
   const router = useRouter();
-  const [userName, setUserName] = useState('');
-  const [sessionName, setSessionName] = useState('');
+  const [userName, setUserName] = useState('User 1');
+  const [sessionName, setSessionName] = useState('Session 1');
   async function onClickCreateSession() {
-    const response = await fetch('/api/socket', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      body: JSON.stringify({
-        name: sessionName,
-        type: Actions.CreateSession,
-        userName: userName,
-      }),
+    const data = await post(Actions.CreateSession, {
+      name: sessionName,
+      type: Actions.CreateSession,
+      userName,
     });
 
-    if (response.ok) {
-      const data = await response.json();
-      console.log(data);
-      localStorage.user = JSON.stringify(data.user);
-      router.push(`/sessions/${data.sessionId}`);
-    }
+    localStorage.user = JSON.stringify(data.user);
+    router.push(`/sessions/${data.sessionId}`);
   }
 
   return (
@@ -45,6 +35,7 @@ const Home: NextPage = () => {
           placeholder="Session Name"
           onChange={(e) => setSessionName(e.target.value)}
           value={sessionName}
+          required
           className="text-black"
         />
         <input
@@ -52,6 +43,7 @@ const Home: NextPage = () => {
           placeholder="User Name"
           onChange={(e) => setUserName(e.target.value)}
           value={userName}
+          required
           className="text-black"
         />
         <button onClick={onClickCreateSession}>Create session</button>

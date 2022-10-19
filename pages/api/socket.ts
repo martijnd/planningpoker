@@ -5,7 +5,7 @@ import { Socket } from 'net';
 import { NextApiResponse } from 'next';
 import { Server as SocketIOServer } from 'socket.io';
 import { v4 as uuidv4 } from 'uuid';
-import { Actions } from '@types';
+import { Actions, Data } from '@types';
 
 export type NextApiResponseServerIO = NextApiResponse & {
   socket: Socket & {
@@ -15,11 +15,24 @@ export type NextApiResponseServerIO = NextApiResponse & {
   };
 };
 
-const sessions: Record<string, any> = {
+const sessions: Record<string, Data> = {
   'ebce1aea-f816-44b7-b38b-7e61baf64d5e': {
     id: 'ebce1aea-f816-44b7-b38b-7e61baf64d5e',
     name: 'Test',
     creating: true,
+    revealed: false,
+    cards: [
+      {
+        id: uuidv4(),
+        text: '1',
+        value: 1,
+      },
+      {
+        id: uuidv4(),
+        text: '2',
+        value: 2,
+      },
+    ],
     users: [
       {
         id: 'f',
@@ -58,18 +71,50 @@ export default async function handler(
         res.socket.server.io.emit('update', sessions[req.body.sessionId]);
         res.json(sessions[req.body.sessionId]);
         break;
+
       case Actions.GetSession:
         res.json(sessions[req.body.sessionId]);
         break;
+
       case Actions.CreateSession:
-        const sessionId = uuidv4();
-        const user = { id: uuidv4(), name: req.body.userName };
-        sessions[sessionId] = {
-          id: sessionId,
-          name: req.body.name,
-          users: [user],
+        const newSessionId = uuidv4();
+        const sessionName = req.body.name;
+        const cards = req.body.cards ?? [
+          {
+            id: uuidv4(),
+            text: '1',
+            value: 1,
+          },
+          {
+            id: uuidv4(),
+            text: '2',
+            value: 2,
+          },
+        ];
+        const newUser = { id: uuidv4(), name: req.body.userName };
+        sessions[newSessionId] = {
+          revealed: false,
+          creating: false,
+          id: newSessionId,
+          name: sessionName,
+          cards,
+          users: [newUser],
         };
-        res.json({ sessionId, user });
+        res.json({ sessionId: newSessionId, user: newUser });
+        break;
+
+      case Actions.PickCard:
+        const { sessionId, card, user } = req.body;
+        sessions[sessionId].users = sessions[sessionId].users.map((u) => {
+          if (user.id === u.id) {
+            return {
+              ...u,
+              played_card: card,
+            };
+          }
+          return u;
+        });
+        res.json(sessions[req.body.sessionId]);
         break;
 
       case Actions.FinishSetupSession:
