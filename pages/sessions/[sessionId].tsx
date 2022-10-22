@@ -12,6 +12,7 @@ export default function Session() {
 
   const [name, setName] = useState('User 2');
   const [user, setUser] = useState<User | null>(null);
+  const [pickedCard, setPickedCard] = useState<Card | null>(null);
   const [data, setData] = useState<Data | null>(null);
 
   async function joinSession() {
@@ -42,11 +43,15 @@ export default function Session() {
       try {
         const resData: Data = await post(Actions.GetSession, { sessionId });
         setData(resData);
-        if (
-          localStorage.user &&
-          resData.users.find((u) => u.id === JSON.parse(localStorage.user).id)
-        ) {
-          setUser(JSON.parse(localStorage.user));
+        const userAlreadyParticipates = resData.users.find(
+          (u) => u.id === JSON.parse(localStorage.user).id
+        );
+        if (localStorage.user) {
+          if (userAlreadyParticipates) {
+            setUser(userAlreadyParticipates);
+          } else {
+            joinSession();
+          }
         }
       } catch (e) {
         console.log(e);
@@ -67,6 +72,7 @@ export default function Session() {
     if (sessionId) {
       fetchSessionData();
     }
+
     return () => {
       socket?.disconnect();
     };
@@ -74,6 +80,8 @@ export default function Session() {
 
   async function onClickCard(card: Card) {
     const data = await post(Actions.PickCard, { sessionId, card, user });
+    setUser((user) => (user ? { ...user, played_card: card } : user));
+    setData(data);
   }
 
   return (
@@ -85,18 +93,28 @@ export default function Session() {
       </Head>
 
       <main className="min-h-screen bg-zinc-800 text-white p-4">
-        <input
-          type="text"
-          className="text-black"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-        <button onClick={joinSession}>Join</button>
-        {data ? (
+        {!user && (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              joinSession();
+            }}
+          >
+            <input
+              type="text"
+              className="text-black"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
+            <button>Join</button>
+          </form>
+        )}
+        {data && user ? (
           <div>
             <div className="flex justify-between">
               <h1 className="">{data.name}</h1>
-              <h2>Hi {user?.name ?? 'unknown user'}</h2>
+              <h2>Hi {user.name}</h2>
             </div>
             <h2 className="text-lg font-bold mt-2">Participants</h2>
             <ul>
@@ -104,12 +122,16 @@ export default function Session() {
                 data.users.map((user) => <li key={user.id}>{user.name}</li>)}
             </ul>
 
-            <h2 className="text-lg font-bold mt-2">Cards</h2>
+            <h2 className="text-lg font-bold mt-2">Picked cards</h2>
             {data.users.map((user) => {
               return (
                 <div key={user.id}>
                   {user.played_card
-                    ? `${data.revealed ? user.played_card : '???'}`
+                    ? `${
+                        data.revealed
+                          ? user.played_card.text
+                          : `${user.name} picked a card`
+                      }`
                     : `Waiting for ${user.name} to pick`}
                 </div>
               );
@@ -120,7 +142,11 @@ export default function Session() {
               {data.cards.map((card) => {
                 return (
                   <button
-                    className="border p-2 rounded hover:bg-white hover:text-zinc-800 transition-all"
+                    className={`border p-2 rounded hover:bg-white hover:text-zinc-800 transition-all ${
+                      user.played_card?.id === card.id
+                        ? 'bg-white text-black'
+                        : ''
+                    }`}
                     onClick={() => onClickCard(card)}
                     key={card.id}
                   >
@@ -129,9 +155,20 @@ export default function Session() {
                 );
               })}
             </div>
+            {data.revealed && (
+              <div>
+                <h2>Result</h2>
+                <div>
+                  {data.users.reduce(
+                    (acc, u) => acc + u.played_card!.value,
+                    0
+                  ) / data.users.length}
+                </div>
+              </div>
+            )}
           </div>
         ) : (
-          'Loading...'
+          <div>Please enter a name</div>
         )}
       </main>
     </div>

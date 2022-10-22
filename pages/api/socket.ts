@@ -32,6 +32,36 @@ const sessions: Record<string, Data> = {
         text: '2',
         value: 2,
       },
+      {
+        id: uuidv4(),
+        text: '3',
+        value: 3,
+      },
+      {
+        id: uuidv4(),
+        text: '4',
+        value: 4,
+      },
+      {
+        id: uuidv4(),
+        text: '5',
+        value: 5,
+      },
+      {
+        id: uuidv4(),
+        text: '6',
+        value: 6,
+      },
+      {
+        id: uuidv4(),
+        text: '7',
+        value: 7,
+      },
+      {
+        id: uuidv4(),
+        text: '8',
+        value: 8,
+      },
     ],
     users: [
       {
@@ -94,6 +124,36 @@ export default async function handler(
             text: '2',
             value: 2,
           },
+          {
+            id: uuidv4(),
+            text: '3',
+            value: 3,
+          },
+          {
+            id: uuidv4(),
+            text: '4',
+            value: 4,
+          },
+          {
+            id: uuidv4(),
+            text: '5',
+            value: 5,
+          },
+          {
+            id: uuidv4(),
+            text: '6',
+            value: 6,
+          },
+          {
+            id: uuidv4(),
+            text: '7',
+            value: 7,
+          },
+          {
+            id: uuidv4(),
+            text: '8',
+            value: 8,
+          },
         ];
         const newUser = { id: uuidv4(), name: req.body.userName };
         sessions[newSessionId] = {
@@ -120,6 +180,17 @@ export default async function handler(
           }
           return u;
         });
+
+        const shouldReveal = sessions[sessionId].users.every((user) => {
+          return Boolean(user.played_card);
+        });
+        if (shouldReveal) {
+          sessions[sessionId] = {
+            ...sessions[sessionId],
+            revealed: true,
+          };
+        }
+
         res.socket.server.io.emit('update', sessions[req.body.sessionId]);
 
         res.json(sessions[req.body.sessionId]);
