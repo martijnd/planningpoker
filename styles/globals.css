@@ -1,3 +1,36 @@
 @tailwind base;
+
+#table-container {
+  grid-gap: 1rem;
+  display: grid;
+  grid-template-areas:
+      "top-left top top-right"
+      "left table right"
+      "bottom-left bottom bottom-right";
+  grid-template-columns: 10.4rem 1fr 10.4rem;
+  grid-template-rows: auto 1fr auto;
+  min-height: 200px;
+}
+
+#top {
+  grid-area: top;
+}
+
+#bottom {
+  grid-area: bottom;
+}
+
+#left {
+  grid-area: left;
+}
+
+#right {
+  grid-area: right;
+}
+
+#table {
+  grid-area: table;
+}
+
 @tailwind components;
 @tailwind utilities;

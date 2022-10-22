@@ -122,12 +122,14 @@ const Home: NextPage = () => {
   const router = useRouter();
   const [userName, setUserName] = useState('');
   const [sessionName, setSessionName] = useState('Session 1');
+  const [cardSet, setCardSet] = useState(availableSets[0].name);
   async function onClickCreateSession() {
     const data = await post(Actions.CreateSession, {
       name: sessionName,
       type: Actions.CreateSession,
       userName: userName,
       id: localStorage.user ? JSON.parse(localStorage.user).id : null,
+      cards: availableSets.find((c) => c.name === cardSet)?.cards,
     });
 
     localStorage.user = JSON.stringify(data.user);
@@ -173,9 +175,10 @@ const Home: NextPage = () => {
             className="text-black px-4 py-2 rounded"
             name="sets"
             id="sets"
+            onChange={(e) => setCardSet(e.target.value)}
           >
             {availableSets.map((set) => (
-              <option key={set.name}>{`${set.name} (${set.cards
+              <option key={set.name} value={set.name}>{`${set.name} (${set.cards
                 .map((card) => card.text)
                 .join(', ')})`}</option>
             ))}

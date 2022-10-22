@@ -109,13 +109,13 @@ export default async function handler(
         };
         res.socket.server.io.emit('update', sessions[req.body.sessionId]);
         res.json(sessions[req.body.sessionId]);
-        console.log(sessions[req.body.sessionId].users);
         break;
       }
 
       case Actions.GetSession: {
         if (!sessions[req.body.sessionId]) {
           res.status(404).json({ error: 'Session not found.' });
+          break;
         }
         res.json(sessions[req.body.sessionId]);
         break;
@@ -213,7 +213,6 @@ export default async function handler(
           res.status(403).json({ error: 'Round already revealed' });
           return;
         }
-        console.log(sessions[sessionId].users, user);
         sessions[sessionId].users = sessions[sessionId].users.map((u) => {
           if (user.id === u.id) {
             return {
