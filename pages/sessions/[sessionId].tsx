@@ -15,6 +15,9 @@ export default function Session() {
   const [data, setData] = useState<Data | null>(null);
 
   async function joinSession() {
+    const existingUser = localStorage.user
+      ? JSON.parse(localStorage.user)
+      : { id: uuidv4(), name };
     const response = await fetch('/api/socket', {
       method: 'POST',
       headers: {
@@ -25,20 +28,28 @@ export default function Session() {
         type: Actions.JoinSession,
         sessionId,
         name,
+        user: existingUser,
       }),
     });
     const resData = await response.json();
-    localStorage.user = JSON.stringify({ id: uuidv4(), name });
-    setUser(JSON.parse(localStorage.user));
+    localStorage.user = JSON.stringify(existingUser);
+    setUser(existingUser);
     setData(resData);
   }
 
   useEffect(() => {
     async function fetchSessionData() {
-      const resData: Data = await post(Actions.GetSession, { sessionId });
-      setData(resData);
-      if (localStorage.user && resData.users.find((u) => u.id === user?.id)) {
-        setUser(JSON.parse(localStorage.user));
+      try {
+        const resData: Data = await post(Actions.GetSession, { sessionId });
+        setData(resData);
+        if (
+          localStorage.user &&
+          resData.users.find((u) => u.id === JSON.parse(localStorage.user).id)
+        ) {
+          setUser(JSON.parse(localStorage.user));
+        }
+      } catch (e) {
+        console.log(e);
       }
     }
     const socket = connect(window.location.origin, {
@@ -68,20 +79,24 @@ export default function Session() {
   return (
     <div>
       <Head>
-        <title>Create Next App</title>
+        <title>Planning Poker</title>
         <meta name="description" content="Planning poker" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
       <main className="min-h-screen bg-zinc-800 text-white p-4">
+        <input
+          type="text"
+          className="text-black"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
         <button onClick={joinSession}>Join</button>
         {data ? (
           <div>
             <div className="flex justify-between">
               <h1 className="">{data.name}</h1>
-              <h2>
-                Hi {localStorage.user ? JSON.parse(localStorage.user).name : ''}
-              </h2>
+              <h2>Hi {user?.name ?? 'unknown user'}</h2>
             </div>
             <h2 className="text-lg font-bold mt-2">Participants</h2>
             <ul>

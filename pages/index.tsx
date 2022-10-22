@@ -23,7 +23,7 @@ const Home: NextPage = () => {
   return (
     <div>
       <Head>
-        <title>Create Next App</title>
+        <title>Planning Poker</title>
         <meta name="description" content="Planning poker" />
         <link rel="icon" href="/favicon.ico" />
       </Head>

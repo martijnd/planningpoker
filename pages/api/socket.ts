@@ -35,7 +35,7 @@ const sessions: Record<string, Data> = {
     ],
     users: [
       {
-        id: 'f',
+        id: 'a524b00e-8138-4dbb-99b3-c99d015a0eda',
         name: 'User 1',
       },
     ],
@@ -59,24 +59,28 @@ export default async function handler(
   if (req.method === 'POST') {
     const { type } = req.body;
     switch (type) {
-      case Actions.JoinSession:
-        const name = req.body.name;
+      case Actions.JoinSession: {
+        // Get user from request if exists
+        const newUser = req.body.user;
         sessions[req.body.sessionId] = {
           ...sessions[req.body.sessionId],
-          users: [
-            ...sessions[req.body.sessionId].users,
-            { id: uuidv4(), name },
-          ],
+          users: [...sessions[req.body.sessionId].users, newUser],
         };
         res.socket.server.io.emit('update', sessions[req.body.sessionId]);
         res.json(sessions[req.body.sessionId]);
+        console.log(sessions[req.body.sessionId].users);
         break;
+      }
 
-      case Actions.GetSession:
+      case Actions.GetSession: {
+        if (!sessions[req.body.sessionId]) {
+          res.status(404).json({ error: 'Session not found.' });
+        }
         res.json(sessions[req.body.sessionId]);
         break;
+      }
 
-      case Actions.CreateSession:
+      case Actions.CreateSession: {
         const newSessionId = uuidv4();
         const sessionName = req.body.name;
         const cards = req.body.cards ?? [
@@ -102,9 +106,11 @@ export default async function handler(
         };
         res.json({ sessionId: newSessionId, user: newUser });
         break;
+      }
 
       case Actions.PickCard:
         const { sessionId, card, user } = req.body;
+        console.log(sessions[sessionId].users, user);
         sessions[sessionId].users = sessions[sessionId].users.map((u) => {
           if (user.id === u.id) {
             return {
@@ -114,6 +120,8 @@ export default async function handler(
           }
           return u;
         });
+        res.socket.server.io.emit('update', sessions[req.body.sessionId]);
+
         res.json(sessions[req.body.sessionId]);
         break;
 
