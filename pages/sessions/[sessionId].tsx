@@ -10,9 +10,9 @@ export default function Session() {
   const router = useRouter();
   const { sessionId } = router.query;
 
-  const [name, setName] = useState('User 2');
+  const [name, setName] = useState('');
   const [user, setUser] = useState<User | null>(null);
-  const [pickedCard, setPickedCard] = useState<Card | null>(null);
+  const [connected, setConnected] = useState(false);
   const [data, setData] = useState<Data | null>(null);
 
   async function joinSession() {
@@ -62,7 +62,7 @@ export default function Session() {
     });
 
     socket.on('connect', () => {
-      console.log('SOCKET CONNECTED!', socket.id);
+      setConnected(true);
     });
 
     socket.on('update', (data) => {
@@ -79,9 +79,13 @@ export default function Session() {
   }, [sessionId]);
 
   async function onClickCard(card: Card) {
-    const data = await post(Actions.PickCard, { sessionId, card, user });
-    setUser((user) => (user ? { ...user, played_card: card } : user));
-    setData(data);
+    try {
+      const data = await post(Actions.PickCard, { sessionId, card, user });
+      setUser((user) => (user ? { ...user, played_card: card } : user));
+      setData(data);
+    } catch (e) {
+      console.log(e);
+    }
   }
 
   async function onClickNewRound() {
@@ -119,10 +123,18 @@ export default function Session() {
         )}
         {data && user ? (
           <div>
-            <div className="flex justify-between">
-              <h1 className="">{data.name}</h1>
-              <h2>Hi {user.name}</h2>
-            </div>
+            <nav className="flex justify-between">
+              <h1 className="font-bold text-2xl">{data.name}</h1>
+              <div className="flex items-center">
+                <h2>Hi {user.name}</h2>{' '}
+                <div
+                  className={`ml-2 h-4 w-4 transition-colors ${
+                    connected ? 'bg-green-500' : 'bg-gray-600'
+                  } rounded-full`}
+                ></div>
+              </div>
+            </nav>
+
             <h2 className="text-lg font-bold mt-2">Participants</h2>
             <ul>
               {data.users?.length &&

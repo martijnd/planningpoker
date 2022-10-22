@@ -29,3 +29,8 @@ export type User = {
   name: string;
   played_card?: Card;
 };
+
+export type CardSet = {
+  name: string;
+  cards: Card[];
+};

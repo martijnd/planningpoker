@@ -176,7 +176,8 @@ export default async function handler(
             value: 10,
           },
         ];
-        const user = req.body.user ?? { id: uuidv4(), name: req.body.userName };
+        const id = req.body.id ?? uuidv4();
+        const user = { id, name: req.body.userName };
         sessions[newSessionId] = {
           revealed: false,
           creating: false,
@@ -208,6 +209,10 @@ export default async function handler(
 
       case Actions.PickCard:
         const { sessionId, card, user } = req.body;
+        if (sessions[sessionId].revealed) {
+          res.status(403).json({ error: 'Round already revealed' });
+          return;
+        }
         console.log(sessions[sessionId].users, user);
         sessions[sessionId].users = sessions[sessionId].users.map((u) => {
           if (user.id === u.id) {

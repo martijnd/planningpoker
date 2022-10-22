@@ -16,7 +16,6 @@ export async function post<T extends object>(type: Actions, payload: T) {
     const data = await response.json();
     throw new Error(data.error);
   }
-  console.log(response);
   const resData = await response.json();
   return resData;
 }
