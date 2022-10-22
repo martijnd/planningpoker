@@ -21,6 +21,7 @@ const sessions: Record<string, Data> = {
     name: 'Test',
     creating: true,
     revealed: false,
+    creator_id: 'ef77489d-6de5-4357-b4c2-55b1107829c8',
     cards: [
       {
         id: uuidv4(),
@@ -62,10 +63,20 @@ const sessions: Record<string, Data> = {
         text: '8',
         value: 8,
       },
+      {
+        id: uuidv4(),
+        text: '9',
+        value: 9,
+      },
+      {
+        id: uuidv4(),
+        text: '10',
+        value: 10,
+      },
     ],
     users: [
       {
-        id: 'a524b00e-8138-4dbb-99b3-c99d015a0eda',
+        id: 'ef77489d-6de5-4357-b4c2-55b1107829c8',
         name: 'User 1',
       },
     ],
@@ -154,17 +165,44 @@ export default async function handler(
             text: '8',
             value: 8,
           },
+          {
+            id: uuidv4(),
+            text: '9',
+            value: 9,
+          },
+          {
+            id: uuidv4(),
+            text: '10',
+            value: 10,
+          },
         ];
-        const newUser = { id: uuidv4(), name: req.body.userName };
+        const user = req.body.user ?? { id: uuidv4(), name: req.body.userName };
         sessions[newSessionId] = {
           revealed: false,
           creating: false,
           id: newSessionId,
           name: sessionName,
+          creator_id: user.id,
           cards,
-          users: [newUser],
+          users: [user],
         };
-        res.json({ sessionId: newSessionId, user: newUser });
+        res.json({ sessionId: newSessionId, user });
+        break;
+      }
+
+      case Actions.NewRound: {
+        sessions[req.body.sessionId] = {
+          ...sessions[req.body.sessionId],
+          revealed: false,
+          users: sessions[req.body.sessionId].users.map((user) => {
+            return {
+              ...user,
+              played_card: undefined,
+            };
+          }),
+        };
+        res.socket.server.io.emit('update', sessions[req.body.sessionId]);
+        res.json(sessions[req.body.sessionId]);
         break;
       }
 

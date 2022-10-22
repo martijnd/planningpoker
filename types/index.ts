@@ -1,6 +1,7 @@
 export enum Actions {
   GetSession = 'get-session',
   CreateSession = 'create-session',
+  NewRound = 'new-round',
   FinishSetupSession = 'finish-setup-session',
   JoinSession = 'join-session',
   RevealSession = 'reveal-session',
@@ -12,6 +13,7 @@ export type Data = {
   name: string;
   creating: boolean;
   revealed: boolean;
+  creator_id: string;
   cards: Card[];
   users: User[];
 };

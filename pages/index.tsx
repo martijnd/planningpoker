@@ -13,7 +13,7 @@ const Home: NextPage = () => {
     const data = await post(Actions.CreateSession, {
       name: sessionName,
       type: Actions.CreateSession,
-      userName,
+      user: localStorage.user ? JSON.parse(localStorage.user) : null,
     });
 
     localStorage.user = JSON.stringify(data.user);

@@ -84,6 +84,13 @@ export default function Session() {
     setData(data);
   }
 
+  async function onClickNewRound() {
+    const data = await post(Actions.NewRound, { sessionId });
+
+    setData(data);
+  }
+  const playedCard = data?.users.find((u) => u.id === user?.id)?.played_card;
+
   return (
     <div>
       <Head>
@@ -143,9 +150,7 @@ export default function Session() {
                 return (
                   <button
                     className={`border p-2 rounded hover:bg-white hover:text-zinc-800 transition-all ${
-                      user.played_card?.id === card.id
-                        ? 'bg-white text-black'
-                        : ''
+                      playedCard?.id === card.id ? 'bg-white text-black' : ''
                     }`}
                     onClick={() => onClickCard(card)}
                     key={card.id}
@@ -157,13 +162,18 @@ export default function Session() {
             </div>
             {data.revealed && (
               <div>
-                <h2>Result</h2>
+                <h2 className="text-lg font-bold my-2">Result</h2>
                 <div>
                   {data.users.reduce(
                     (acc, u) => acc + u.played_card!.value,
                     0
                   ) / data.users.length}
                 </div>
+                {user.id === data.creator_id && (
+                  <div>
+                    <button onClick={onClickNewRound}>New round</button>
+                  </div>
+                )}
               </div>
             )}
           </div>
